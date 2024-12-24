@@ -1,0 +1,74 @@
+Private Sub loginbtn_Click()
+    ' Declare variables for the input fields
+    Dim username As String, password As String
+
+    ' Retrieve input values from textboxes
+    username = uname.Text
+    password = passwrd.Text
+
+    ' Validate if both fields are filled
+    If uname.Text = "" Or passwrd.Text = "" Then
+        MsgBox "Please enter both username and password.", vbExclamation, "Missing Information"
+        Exit Sub
+    End If
+
+    ' Database connection string
+    Dim conn As Object
+    Dim cmd As Object
+    Dim rs As Object
+    On Error GoTo ErrorHandler
+
+    ' Initialize database connection
+    Set conn = CreateObject("ADODB.Connection")
+    conn.connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=C:\Users\USER\Desktop\ONLINE HARDWARE AND CONSTRUCTION INVENTORY SYSTEM\database\inventory_onlone_hardwareDB.mdb;Persist Security Info=False;"
+    conn.Open
+
+    ' Create the SQL command to check for username and password
+    Set cmd = CreateObject("ADODB.Command")
+    With cmd
+        .ActiveConnection = conn
+        .CommandText = "SELECT * FROM [user] WHERE username = ? AND [password] = ?"
+        ' Append parameters
+        .Parameters.Append .CreateParameter("username", 200, 1, 50, username)
+        .Parameters.Append .CreateParameter("password", 200, 1, 50, password)
+        
+        ' Execute the command and get the recordset
+        Set rs = .Execute
+    End With
+
+    ' Check if any records were returned (i.e., the user exists with the provided credentials)
+    If Not rs.EOF Then
+        MsgBox "Login successful!", vbInformation, "Login"
+        ' You can redirect to another form or open the main application window here
+        ' For example: OpenMainForm
+    Else
+        MsgBox "Invalid username or password. Please try again.", vbCritical, "Login Failed"
+    End If
+
+    ' Clean up
+    rs.Close
+    conn.Close
+    Set rs = Nothing
+    Set cmd = Nothing
+    Set conn = Nothing
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "An error occurred during login: " & Err.Description, vbCritical, "Error"
+    If Not conn Is Nothing Then
+        If conn.State = 1 Then conn.Close
+    End If
+    Set rs = Nothing
+    Set cmd = Nothing
+    Set conn = Nothing
+End Sub
+
+Private Sub CancelBtn_Click()
+    ' Clear the username and password fields
+    uname.Text = ""
+    passwrd.Text = ""
+
+    ' Optionally, you can reset the focus to the username field
+    uname.SetFocus
+End Sub
+
